@@ -18,16 +18,21 @@ BENB = 18
 
 # Luci di STOP
 LSTOP = 13
+#Retromarcia
 LRETR = 6
+#Freccie di DX
 FR_DX = 5
-FR_SX = 11
+#Freccie di SX
+FR_SX = 22
+#Luci abbaglianti
+LABB = 27
 
 #Luci RGB anteriori
 RBG_RED = 9
-RBG_GREEN = 25
+RBG_GREEN = 11
 RBG_BLUE = 10
 
-all_pins = [AIN1, AIN2, AIN3, AIN4, AENA, AENB, BIN1, BIN2, BIN3, BIN4, BENA, BENB, LSTOP, LRETR, FR_DX, FR_SX, RBG_RED, RBG_GREEN, RBG_BLUE]
+all_pins = [AIN1, AIN2, AIN3, AIN4, AENA, AENB, BIN1, BIN2, BIN3, BIN4, BENA, BENB, LSTOP, LRETR, FR_DX, FR_SX, RBG_RED, RBG_GREEN, RBG_BLUE, LABB]
 
 freccia_dx_is_working = None
 freccia_sx_is_working = None
@@ -121,6 +126,11 @@ def motore4_indietro(velocita_percento):
 def accendi_luci_stop():
     GPIO.output(LSTOP, GPIO.HIGH)
 
+def accendi_abbaglianti():
+    GPIO.output(LABB, GPIO.HIGH)
+
+def spegni_abbaglianti():
+    GPIO.output(LABB, GPIO.LOW)
 
 def accendi_luci_retr():
     GPIO.output(LRETR, GPIO.HIGH)
@@ -229,111 +239,35 @@ def spegni_fr_sinistra():
 
 
 try:
-    """
-    print("Test motore 1")
-    motore1_avanti(100)
-    time.sleep(5)
-    motore1_avanti(0)
-    print("Test motore 2")
-    motore2_avanti(100)
-    time.sleep(5)
-    motore2_avanti(0)
-    print("Test motore 3")
-    motore3_avanti(100)
-    time.sleep(5)
-    motore3_avanti(0)
-    print("Test motore 4")
-    motore4_avanti(100)
-    time.sleep(5)
-    motore4_avanti(0)
-    print("Velocita diverse")
-    motore1_avanti(100)
-    motore2_avanti(100)
-    motore3_avanti(100)
-    motore4_avanti(100)
-    time.sleep(300)
-    
-    spegni_luci_retr()
-    spegni_luci_stop()
-
-    motore1_avanti(100)
-    motore2_avanti(100)
-    motore3_avanti(100)
-    motore4_avanti(100)
-    time.sleep(0.25)
-    ferma_tutto()
     accendi_luci_stop()
-    time.sleep(2)
-
     accendi_luci_retr()
-    motore1_indietro(100)
-    motore2_indietro(100)
-    motore3_indietro(100)
-    motore4_indietro(100)
-    time.sleep(0.25)
-    ferma_tutto()
-    
+    accendi_fr_sinistra()
     accendi_fr_destra()
+    accendi_abbaglianti()
+    set_color(0, 0, 255)
     time.sleep(5)
-    motore1_avanti(100)
-    motore2_avanti(100)
-    motore3_avanti(100)
-    motore4_avanti(100)
-    time.sleep(0.25)
-    ferma_tutto()
-    accendi_luci_stop()
-    time.sleep(5)
-
-    accendi_luci_retr()
-    motore1_indietro(100)
-    motore2_indietro(100)
-    motore3_indietro(100)
-    motore4_indietro(100)
-    time.sleep(0.25)
-    spegni_fr_destra()
-    ferma_tutto()
-
-    """
-
     set_color(255, 0, 0)
     time.sleep(5)
     set_color(0, 255, 0)
     time.sleep(5)
-    set_color(0, 0, 255)
+    set_color(255, 255, 0)
+    time.sleep(5)
+    set_color(255, 0, 255)
+    time.sleep(5)
+    set_color(0, 255, 255)
     time.sleep(5)
     set_color(255, 255, 255)
     time.sleep(5)
-
-
-    accendi_fr_destra()
-    accendi_fr_sinistra()
-    time.sleep(5)
-    spegni_fr_destra()
-    spegni_fr_sinistra()
-    time.sleep(5)
-    accendi_fr_destra()
-    accendi_fr_sinistra()
-    time.sleep(5)
-    spegni_fr_destra()
-    spegni_fr_sinistra()
-
-
-    """
-    print("Motori avanti a velocità 50% per 5 secondi")
-    motore1_avanti(50)
-    motore2_avanti(50)
-    time.sleep(5)
-
-    print("Motori avanti a velocità 100% per 3 secondi")
     motore1_avanti(100)
     motore2_avanti(100)
-    time.sleep(3)
-
-    print("Motori indietro a velocità 70% per 4 secondi")
-    motore1_indietro(70)
-    motore2_indietro(70)
-    time.sleep(4)
-"""
+    motore3_avanti(100)
+    motore4_avanti(100)
+    time.sleep(5)
+    motore3_indietro(100)
+    motore2_avanti(100)
+    motore3_indietro(100)
+    motore4_avanti(100)
+    time.sleep(5)
     print("Stop!")
     ferma_tutto()
 
