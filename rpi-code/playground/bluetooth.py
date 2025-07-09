@@ -1,7 +1,6 @@
 import subprocess
 import bluetooth
 import RPi.GPIO as GPIO
-import time
 
 LED_PIN = 17  # Puoi cambiare questo pin
 
