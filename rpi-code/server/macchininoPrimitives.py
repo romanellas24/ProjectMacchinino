@@ -44,26 +44,6 @@ all_pins = [AIN1, AIN2, AIN3, AIN4, AENA, AENB, BIN1, BIN2, BIN3, BIN4, BENA, BE
 freccia_dx_is_working = None
 freccia_sx_is_working = None
 
-"""
-# Imposta PWM su ENA e ENB a 1kHz
-pwmA = GPIO.PWM(AENA, 1000)  # Frequenza di 1 kHz
-pwmB = GPIO.PWM(AENB, 1000)
-pwmC = GPIO.PWM(BENA, 1000)
-pwmD = GPIO.PWM(BENB, 1000)
-
-pwmRed = GPIO.PWM(RBG_RED, 1000)
-pwmGreen = GPIO.PWM(RBG_GREEN, 1000)
-pwmBlue = GPIO.PWM(RBG_BLUE, 1000)
-pinsRgb = {'R': pwmRed, 'G': pwmGreen, 'B': pwmBlue}
-
-pwmA.start(0)  # All'inizio motori fermi
-pwmB.start(0)
-pwmC.start(0)
-pwmD.start(0)
-pinsRgb["R"].start(0)
-pinsRgb["G"].start(0)
-pinsRgb["B"].start(0)
-"""
 
 def setup_pins(pins):
     # Setup
@@ -77,13 +57,6 @@ def setup_pins(pins):
 
 def conv(v):
     return int(v * 100 / 255)
-
-"""
-def set_color(r, g, b):
-    pinsRgb["R"].ChangeDutyCycle(conv(r))
-    pinsRgb["G"].ChangeDutyCycle(conv(g))
-    pinsRgb["B"].ChangeDutyCycle(conv(b))
-"""
 
 def motore1_avanti(velocita_percento, pwm):
     GPIO.output(AIN1, GPIO.HIGH)
@@ -155,7 +128,9 @@ def spegni_luci_retr():
 
 
 def ferma_tutto():
-    setup_pins([AIN1, AIN2, AIN3, AIN4, AENA, AENB, BIN1, BIN2, BIN3, BIN4, BENA, BENB])
+    setup_pins([AIN1, AIN2, AIN3, AIN4, AENA, AENB, BIN1, BIN2, BIN3, BIN4, BENA, BENB, LSTOP, LRETR])
+    accendi_luci_stop()
+    spegni_luci_retr()
     GPIO.output(AIN1, GPIO.LOW)
     GPIO.output(AIN2, GPIO.LOW)
     GPIO.output(AIN3, GPIO.LOW)
@@ -242,7 +217,7 @@ def cammina(speed = 100):
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
 
-    all_motor_pins = [AIN1, AIN2, AIN3, AIN4, BIN1, BIN2, BIN3, BIN4, AENA, AENB, BENA, BENB]
+    all_motor_pins = [AIN1, AIN2, AIN3, AIN4, BIN1, BIN2, BIN3, BIN4, AENA, AENB, BENA, BENB, LSTOP, LRETR]
 
     for pin in all_motor_pins:
         GPIO.setup(pin, GPIO.OUT)
@@ -269,6 +244,8 @@ def cammina(speed = 100):
 
     signal.signal(signal.SIGTERM, safe_exit)
 
+    spegni_luci_stop()
+    spegni_luci_retr()
     motore1_avanti(speed, pwmA)
     motore2_avanti(speed, pwmB)
     motore3_avanti(speed, pwmC)
@@ -281,17 +258,156 @@ def cammina(speed = 100):
         safe_exit(None, None)
 
 def retromarcia(speed = 100):
-    setup_pins([AIN1, AIN2, AIN3, AIN4, AENA, AENB, BIN1, BIN2, BIN3, BIN4, BENA, BENB])
-    pwmA = GPIO.PWM(AENA, 1000)  # Frequenza di 1 kHz
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setwarnings(False)
+
+    all_motor_pins = [AIN1, AIN2, AIN3, AIN4, BIN1, BIN2, BIN3, BIN4, AENA, AENB, BENA, BENB, LSTOP, LRETR]
+
+    for pin in all_motor_pins:
+        GPIO.setup(pin, GPIO.OUT)
+        GPIO.output(pin, GPIO.LOW)
+
+    pwmA = GPIO.PWM(AENA, 1000)
     pwmB = GPIO.PWM(AENB, 1000)
     pwmC = GPIO.PWM(BENA, 1000)
     pwmD = GPIO.PWM(BENB, 1000)
+
+    pwmA.start(0)
+    pwmB.start(0)
+    pwmC.start(0)
+    pwmD.start(0)
+
+    def safe_exit(signum, frame):
+        print("[retromarcia] Interrotto da SIGTERM. Cleanup...")
+        pwmA.stop()
+        pwmB.stop()
+        pwmC.stop()
+        pwmD.stop()
+        GPIO.cleanup(all_motor_pins)
+        sys.exit(0)
+
     signal.signal(signal.SIGTERM, safe_exit)
+
+    accendi_luci_stop()
+    accendi_luci_retr()
 
     motore1_indietro(speed, pwmA)
     motore2_indietro(speed, pwmB)
     motore3_indietro(speed, pwmC)
     motore4_indietro(speed, pwmD)
+
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        safe_exit(None, None)
+
+def destra(speed = 100):
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setwarnings(False)
+
+    all_motor_pins = [AIN1, AIN2, AIN3, AIN4, BIN1, BIN2, BIN3, BIN4, AENA, AENB, BENA, BENB, LSTOP, LRETR]
+
+    for pin in all_motor_pins:
+        GPIO.setup(pin, GPIO.OUT)
+        GPIO.output(pin, GPIO.LOW)
+
+    pwmA = GPIO.PWM(AENA, 1000)
+    pwmB = GPIO.PWM(AENB, 1000)
+    pwmC = GPIO.PWM(BENA, 1000)
+    pwmD = GPIO.PWM(BENB, 1000)
+
+    pwmA.start(0)
+    pwmB.start(0)
+    pwmC.start(0)
+    pwmD.start(0)
+
+    def safe_exit(signum, frame):
+        print("[destra] Interrotto da SIGTERM. Cleanup...")
+        pwmA.stop()
+        pwmB.stop()
+        pwmC.stop()
+        pwmD.stop()
+        GPIO.cleanup(all_motor_pins)
+        sys.exit(0)
+
+    signal.signal(signal.SIGTERM, safe_exit)
+
+    spegni_luci_stop()
+    spegni_luci_retr()
+
+    motore1_avanti(speed, pwmA)
+    motore2_indietro(speed, pwmB)
+    motore3_avanti(speed, pwmC)
+    motore4_indietro(speed, pwmD)
+
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        safe_exit(None, None)
+
+def sinistra(speed = 100):
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setwarnings(False)
+
+    all_motor_pins = [AIN1, AIN2, AIN3, AIN4, BIN1, BIN2, BIN3, BIN4, AENA, AENB, BENA, BENB, LSTOP, LRETR]
+
+    for pin in all_motor_pins:
+        GPIO.setup(pin, GPIO.OUT)
+        GPIO.output(pin, GPIO.LOW)
+
+    pwmA = GPIO.PWM(AENA, 1000)
+    pwmB = GPIO.PWM(AENB, 1000)
+    pwmC = GPIO.PWM(BENA, 1000)
+    pwmD = GPIO.PWM(BENB, 1000)
+
+    pwmA.start(0)
+    pwmB.start(0)
+    pwmC.start(0)
+    pwmD.start(0)
+
+    def safe_exit(signum, frame):
+        print("[sinistra] Interrotto da SIGTERM. Cleanup...")
+        pwmA.stop()
+        pwmB.stop()
+        pwmC.stop()
+        pwmD.stop()
+        GPIO.cleanup(all_motor_pins)
+        sys.exit(0)
+
+    signal.signal(signal.SIGTERM, safe_exit)
+
+    spegni_luci_stop()
+    spegni_luci_retr()
+    motore1_indietro(speed, pwmB)
+    motore2_avanti(speed, pwmA)
+    motore3_indietro(speed, pwmD)
+    motore4_avanti(speed, pwmC)
+
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        safe_exit(None, None)
+
+def setup():
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setwarnings(False)
+
+    all_pins = [LSTOP, LRETR]
+
+    for pin in all_pins:
+        GPIO.setup(pin, GPIO.OUT)
+        GPIO.output(pin, GPIO.LOW)
+
+    accendi_luci_stop()
+    spegni_luci_retr()
+
+    def safe_exit(signum, frame):
+        print("[setup] Interrotto da SIGTERM. Cleanup...")
+        GPIO.cleanup(all_pins)
+        sys.exit(0)
 
     try:
         while True:

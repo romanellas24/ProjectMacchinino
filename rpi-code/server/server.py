@@ -1,16 +1,17 @@
 import socket
 import subprocess
-import threading
+import time
 
+import RPi.GPIO as GPIO
 import macchininoPrimitives
 from multiprocessing import Process
-from threading import Thread
 
 freccia_sx_is_working = None
 freccia_dx_is_working = None
 
 move_command_executing = "MOVE_STOP"
 move_command_process = None
+
 
 def execute_command(command):
     try:
@@ -33,6 +34,7 @@ def accendi_fr_sinistra():
         freccia_sx_is_working = Process(target=macchininoPrimitives.accendi_fr_sinistra_work)
         freccia_sx_is_working.start()
 
+
 def execute_move_command(invoked, callback):
     global move_command_executing, move_command_process
     if move_command_executing != invoked:
@@ -49,6 +51,8 @@ def execute_move_command(invoked, callback):
     move_command_process = Process(target=callback)
     move_command_process.start()
 
+
+execute_move_command("SETUP", macchininoPrimitives.setup)
 
 server_sock = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
 server_sock.bind((macchininoPrimitives.SERVER_MAC_ADDRESS, 1))  # Port 1 for SPP
@@ -83,6 +87,10 @@ try:
             execute_move_command(decoded, macchininoPrimitives.cammina)
         elif decoded == "MOVE_BACK":
             execute_move_command(decoded, macchininoPrimitives.retromarcia)
+        elif decoded == "MOVE_LEFT":
+            execute_move_command(decoded, macchininoPrimitives.sinistra)
+        elif decoded == "MOVE_RIGHT":
+            execute_move_command(decoded, macchininoPrimitives.destra)
         """
         elif decoded == "TOGGLE_FRECCIA_DX":
             
