@@ -3,6 +3,7 @@ package it.romanellas.macchinino
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -79,11 +80,13 @@ class MainActivity : AppCompatActivity() {
                     setPadding(30, 20, 30, 20)
                     setBackgroundResource(android.R.drawable.dialog_holo_light_frame)
                     setOnClickListener {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Clicked: ${device.name ?: "Unknown"} (${device.address})",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        val intent = Intent(context, CommandActivity::class.java).apply {
+                            putExtra("device_name", device.name)
+                            putExtra("device_address", device.address) // <== This is used for RFCOMM
+                            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        startActivity(intent)
                     }
 
                     val tv = TextView(this@MainActivity).apply {
