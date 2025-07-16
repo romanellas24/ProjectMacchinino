@@ -88,8 +88,6 @@ def main():
                 execute_move_command(decoded, shared)
             elif decoded == "TOGGLE_HIGH_LIGHTS":
                 shared["high_lights"] = not shared["high_lights"]
-            elif decoded == "TOGGLE_HIGH_LIGHTS":
-                shared["high_lights"] = not shared["high_lights"]
             elif decoded == "TOGGLE_TR_LF":
                 shared["signal_turn_left"] = not shared["signal_turn_left"]
             elif decoded == "TOGGLE_TR_RG":

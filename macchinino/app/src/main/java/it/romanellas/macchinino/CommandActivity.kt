@@ -6,13 +6,18 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.Button
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import com.github.dhaval2404.colorpicker.ColorPickerDialog
+import com.github.dhaval2404.colorpicker.model.ColorShape
 import java.io.IOException
 import java.util.UUID
 import kotlin.concurrent.thread
+
 
 class CommandActivity : AppCompatActivity() {
 
@@ -25,8 +30,7 @@ class CommandActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val tv = TextView(this)
-        setContentView(tv)
+        setContentView(R.layout.activity_command)
 
         deviceName = intent.getStringExtra("device_name") ?: "Unknown"
         deviceAddress = intent.getStringExtra("device_address") ?: ""
@@ -36,12 +40,49 @@ class CommandActivity : AppCompatActivity() {
             finish()
             return
         }
+        val tv = findViewById<TextView>(R.id.statusTextView)
+
+
+        val stopButton = findViewById<ImageButton>(R.id.stop)
+        val leftButton = findViewById<ImageButton>(R.id.left)
+        val rightButton = findViewById<ImageButton>(R.id.right)
+        val upButton = findViewById<ImageButton>(R.id.up)
+        val downButton = findViewById<ImageButton>(R.id.down)
+        val turnLeftButton = findViewById<ImageButton>(R.id.left_indicator)
+        val turnRightButton = findViewById<ImageButton>(R.id.right_indicator)
+        val highlightButton = findViewById<ImageButton>(R.id.hight_lights)
+        val turnOffButton = findViewById<Button>(R.id.turn_off_button)
 
         tv.text = "Connecting to $deviceName ($deviceAddress)..."
 
         thread {
             connectToDevice(tv)
         }
+
+        stopButton.setOnClickListener { sendString("MOVE_STOP") }
+        leftButton.setOnClickListener { sendString("MOVE_LEFT") }
+        rightButton.setOnClickListener { sendString("MOVE_RIGHT") }
+        upButton.setOnClickListener { sendString("MOVE_AHEAD") }
+        downButton.setOnClickListener{ sendString("MOVE_BACK") }
+        turnLeftButton.setOnClickListener { sendString("TOGGLE_TR_LF") }
+        turnRightButton.setOnClickListener { sendString("TOGGLE_TR_RG") }
+        highlightButton.setOnClickListener { sendString("TOGGLE_HIGH_LIGHTS") }
+        turnOffButton.setOnClickListener { sendString("SYSTEM_SHUTDOWN") }
+
+        val colorPickerBtn = findViewById<Button>(R.id.color_picker_button)
+        colorPickerBtn.setOnClickListener {
+            ColorPickerDialog
+                .Builder(this)        				// Pass Activity Instance
+                .setTitle("Pick lights")           	        // Default "Choose Color"
+                .setColorShape(ColorShape.SQAURE)           // Default ColorShape.CIRCLE
+                .setColorListener { color, colorHex ->
+                    val (r, g, b) = hexToRgb(colorHex)
+                    sendString("LIGHTS_" + r + "_" + g + "_" + b)
+                }
+                .show()
+        }
+
+
     }
 
     private fun connectToDevice(statusTextView: TextView) {
@@ -107,6 +148,18 @@ class CommandActivity : AppCompatActivity() {
             e.printStackTrace()
             Toast.makeText(this, "Failed to send: ${e.message}", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    fun hexToRgb(hex: String): Triple<Int, Int, Int> {
+        val cleaned = hex.removePrefix("#")
+
+        if (cleaned.length != 6) throw IllegalArgumentException("Hex color must be in format #RRGGBB")
+
+        val r = cleaned.substring(0, 2).toInt(16)
+        val g = cleaned.substring(2, 4).toInt(16)
+        val b = cleaned.substring(4, 6).toInt(16)
+
+        return Triple(r, g, b)
     }
 
 
