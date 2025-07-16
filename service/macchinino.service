@@ -1,0 +1,12 @@
+[Unit]
+Description=Project Macchinino
+After=bluetooth.service
+Requires=bluetooth.service
+
+[Service]
+ExecStart=/bin/bash -c 'sdptool add SP && /usr/bin/python3 /home/macchinino/server.py'
+Restart=on-failure
+User=root
+
+[Install]
+WantedBy=multi-user.target
