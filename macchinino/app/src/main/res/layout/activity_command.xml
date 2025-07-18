@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/commandLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="32dp">
+
+    <!-- Top TextView -->
+    <TextView
+        android:id="@+id/statusTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Bluetooth Remote Controller"
+        android:textSize="18sp"
+        android:textAlignment="center"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="16dp" />
+
+    <!-- ROW: Lights and indicators -->
+
+    <!-- STOP Button (Center) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/indicatorRow"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/statusTextView">
+
+        <!-- LEFT INDICATOR -->
+        <ImageButton
+            android:id="@+id/left_indicator"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:background="@android:drawable/btn_default"
+            android:contentDescription="LEFT_INDICATOR"
+            android:src="@drawable/baseline_arrow_circle_left_24"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- HIGHT LIGHTS -->
+
+        <!-- RIGHT INDICATOR -->
+        <ImageButton
+            android:id="@+id/hight_lights"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:background="@android:drawable/btn_default"
+            android:contentDescription="HIGHT_LIGHTS"
+            android:src="@drawable/hight_light_icon"
+
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/right_indicator"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:background="@android:drawable/btn_default"
+            android:contentDescription="RIGHT_INDICATOR"
+            android:src="@drawable/baseline_arrow_circle_right_24"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- COLOR PICKER BUTTON BELOW HIGHT_LIGHTS -->
+        <Button
+            android:id="@+id/color_picker_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Lights color"
+            app:layout_constraintEnd_toEndOf="@id/hight_lights"
+            app:layout_constraintStart_toStartOf="@id/hight_lights"
+            app:layout_constraintTop_toBottomOf="@id/hight_lights" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <ImageButton
+        android:id="@+id/stop"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:contentDescription="STOP"
+        android:src="@drawable/stop_icon"
+        android:background="@android:drawable/btn_default"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- LEFT Button -->
+    <ImageButton
+        android:id="@+id/left"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:contentDescription="LEFT"
+        android:src="@drawable/left_icon"
+        android:background="@android:drawable/btn_default"
+        app:layout_constraintTop_toTopOf="@+id/stop"
+        app:layout_constraintBottom_toBottomOf="@+id/stop"
+        app:layout_constraintEnd_toStartOf="@+id/stop"
+        android:layout_marginEnd="24dp" />
+
+    <!-- RIGHT Button -->
+    <ImageButton
+        android:id="@+id/right"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:contentDescription="RIGHT"
+        android:src="@drawable/right_icon"
+        android:background="@android:drawable/btn_default"
+        app:layout_constraintTop_toTopOf="@+id/stop"
+        app:layout_constraintBottom_toBottomOf="@+id/stop"
+        app:layout_constraintStart_toEndOf="@+id/stop"
+        android:layout_marginStart="24dp" />
+
+    <!-- UP Button -->
+    <ImageButton
+        android:id="@+id/up"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:contentDescription="UP"
+        android:src="@drawable/up_icon"
+        android:background="@android:drawable/btn_default"
+        app:layout_constraintBottom_toTopOf="@+id/stop"
+        app:layout_constraintStart_toStartOf="@+id/stop"
+        app:layout_constraintEnd_toEndOf="@+id/stop"
+        android:layout_marginBottom="24dp" />
+
+    <!-- DOWN Button -->
+    <ImageButton
+        android:id="@+id/down"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:contentDescription="DOWN"
+        android:src="@drawable/down_icon"
+        android:background="@android:drawable/btn_default"
+        app:layout_constraintTop_toBottomOf="@+id/stop"
+        app:layout_constraintStart_toStartOf="@+id/stop"
+        app:layout_constraintEnd_toEndOf="@+id/stop"
+        android:layout_marginTop="24dp" />
+
+    <Button
+        android:id="@+id/turn_off_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Turn Off"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="16dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

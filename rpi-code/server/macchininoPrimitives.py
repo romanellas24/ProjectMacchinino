@@ -1,11 +1,9 @@
 import time
-from threading import Event
-import RPi.GPIO as GPIO
-import signal
-import sys
 
-SERVER_MAC_ADDRESS = "2C:CF:67:4F:11:F0"
-SERVER_SUBPROCESS_SLEEP = 0.1
+import RPi.GPIO as GPIO
+import sys
+from TimedSwitch import TimedSwitch
+import signal
 
 # Mappatura pin per motori anteriori
 AIN1 = 16
@@ -15,55 +13,36 @@ AIN4 = 26
 AENA = 12  # PWM per motore 1
 AENB = 19  # PWM per motore 2
 
-#Pin per motori posteriori
+# Pin per motori posteriori
 BIN1 = 2
 BIN2 = 3
 BIN3 = 4
 BIN4 = 14
-BENA = 15 # PWM per motore 3
-BENB = 18 # PWM per motore 3
+BENA = 15  # PWM per motore 3
+BENB = 18  # PWM per motore 3
 
 # Luci di STOP
 LSTOP = 13
-#Retromarcia
+# Retromarcia
 LRETR = 6
-#Freccie di DX
+# Freccie di DX
 FR_DX = 5
-#Freccie di SX
+# Freccie di SX
 FR_SX = 22
-#Luci abbaglianti
+# Luci abbaglianti
 LABB = 27
 
-#Luci RGB anteriori
+# Luci RGB anteriori
 RBG_RED = 9
 RBG_GREEN = 11
 RBG_BLUE = 10
 
-all_pins = [AIN1, AIN2, AIN3, AIN4, AENA, AENB, BIN1, BIN2, BIN3, BIN4, BENA, BENB, LSTOP, LRETR, FR_DX, FR_SX, RBG_RED, RBG_GREEN, RBG_BLUE, LABB]
+all_pins = [AIN1, AIN2, AIN3, AIN4, AENA, AENB, BIN1, BIN2, BIN3, BIN4, BENA, BENB, LSTOP, LRETR, FR_DX, FR_SX, RBG_RED,
+            RBG_GREEN, RBG_BLUE, LABB]
 
 freccia_dx_is_working = None
 freccia_sx_is_working = None
 
-"""
-# Imposta PWM su ENA e ENB a 1kHz
-pwmA = GPIO.PWM(AENA, 1000)  # Frequenza di 1 kHz
-pwmB = GPIO.PWM(AENB, 1000)
-pwmC = GPIO.PWM(BENA, 1000)
-pwmD = GPIO.PWM(BENB, 1000)
-
-pwmRed = GPIO.PWM(RBG_RED, 1000)
-pwmGreen = GPIO.PWM(RBG_GREEN, 1000)
-pwmBlue = GPIO.PWM(RBG_BLUE, 1000)
-pinsRgb = {'R': pwmRed, 'G': pwmGreen, 'B': pwmBlue}
-
-pwmA.start(0)  # All'inizio motori fermi
-pwmB.start(0)
-pwmC.start(0)
-pwmD.start(0)
-pinsRgb["R"].start(0)
-pinsRgb["G"].start(0)
-pinsRgb["B"].start(0)
-"""
 
 def setup_pins(pins):
     # Setup
@@ -75,15 +54,10 @@ def setup_pins(pins):
         GPIO.setup(pin, GPIO.OUT)
         GPIO.output(pin, GPIO.LOW)
 
+
 def conv(v):
     return int(v * 100 / 255)
 
-"""
-def set_color(r, g, b):
-    pinsRgb["R"].ChangeDutyCycle(conv(r))
-    pinsRgb["G"].ChangeDutyCycle(conv(g))
-    pinsRgb["B"].ChangeDutyCycle(conv(b))
-"""
 
 def motore1_avanti(velocita_percento, pwm):
     GPIO.output(AIN1, GPIO.HIGH)
@@ -133,14 +107,33 @@ def motore4_indietro(velocita_percento, pwm):
     pwm.ChangeDutyCycle(velocita_percento)
 
 
+def accendi_fr_destra():
+    GPIO.output(FR_DX, GPIO.HIGH)
+
+
+def spegni_fr_destra():
+    GPIO.output(FR_DX, GPIO.LOW)
+
+
+def accendi_fr_sinistra():
+    GPIO.output(FR_SX, GPIO.HIGH)
+
+
+def spegni_fr_sinistra():
+    GPIO.output(FR_SX, GPIO.LOW)
+
+
 def accendi_luci_stop():
     GPIO.output(LSTOP, GPIO.HIGH)
+
 
 def accendi_abbaglianti():
     GPIO.output(LABB, GPIO.HIGH)
 
+
 def spegni_abbaglianti():
     GPIO.output(LABB, GPIO.LOW)
+
 
 def accendi_luci_retr():
     GPIO.output(LRETR, GPIO.HIGH)
@@ -154,99 +147,82 @@ def spegni_luci_retr():
     GPIO.output(LRETR, GPIO.LOW)
 
 
-def ferma_tutto():
-    setup_pins([AIN1, AIN2, AIN3, AIN4, AENA, AENB, BIN1, BIN2, BIN3, BIN4, BENA, BENB])
-    GPIO.output(AIN1, GPIO.LOW)
-    GPIO.output(AIN2, GPIO.LOW)
-    GPIO.output(AIN3, GPIO.LOW)
-    GPIO.output(AIN4, GPIO.LOW)
-    GPIO.output(BIN1, GPIO.LOW)
-    GPIO.output(BIN2, GPIO.LOW)
-    GPIO.output(BIN3, GPIO.LOW)
-    GPIO.output(BIN4, GPIO.LOW)
-    pwmA = GPIO.PWM(AENA, 1000)  # Frequenza di 1 kHz
-    pwmB = GPIO.PWM(AENB, 1000)
-    pwmC = GPIO.PWM(BENA, 1000)
-    pwmD = GPIO.PWM(BENB, 1000)
-    pwmA.ChangeDutyCycle(0)
-    pwmB.ChangeDutyCycle(0)
-    pwmC.ChangeDutyCycle(0)
-    pwmD.ChangeDutyCycle(0)
+def handle_move_command(move_command, pwmA, pwmB, pwmC, pwmD):
+    if move_command == "MOVE_STOP":
+        spegni_luci_retr()
+        accendi_luci_stop()
+        motore1_avanti(0, pwmA)
+        motore2_avanti(0, pwmB)
+        motore3_avanti(0, pwmC)
+        motore4_avanti(0, pwmD)
+    elif move_command == "MOVE_AHEAD":
+        spegni_luci_retr()
+        spegni_luci_stop()
+        motore1_avanti(100, pwmA)
+        motore2_avanti(100, pwmB)
+        motore3_avanti(100, pwmC)
+        motore4_avanti(100, pwmD)
+    elif move_command == "MOVE_BACK":
+        accendi_luci_retr()
+        accendi_luci_stop()
+        motore1_indietro(100, pwmA)
+        motore2_indietro(100, pwmB)
+        motore3_indietro(100, pwmC)
+        motore4_indietro(100, pwmD)
+    elif move_command == "MOVE_LEFT":
+        spegni_luci_retr()
+        spegni_luci_stop()
+        motore1_indietro(100, pwmA)
+        motore2_avanti(100, pwmB)
+        motore3_indietro(100, pwmC)
+        motore4_avanti(100, pwmD)
+    elif move_command == "MOVE_RIGHT":
+        spegni_luci_retr()
+        spegni_luci_stop()
+        motore1_avanti(100, pwmA)
+        motore2_indietro(100, pwmB)
+        motore3_avanti(100, pwmC)
+        motore4_indietro(100, pwmD)
 
+def handle_turn_indicators(isLeft = False, isOn = False):
+    if isLeft and isOn:
+        accendi_fr_sinistra()
+    if isLeft and not isOn:
+        spegni_fr_sinistra()
+    if not isLeft and isOn:
+        accendi_fr_destra()
+    if not isLeft and not isOn:
+        spegni_fr_destra()
 
-def gira_90_deg():
-    motore1_avanti(100)
-    motore2_avanti(100)
-    motore3_avanti(100)
-    motore4_avanti(100)
-    time.sleep(1)
+def set_color(r, g, b, pinsRgb):
+    pinsRgb[0].ChangeDutyCycle(conv(r))
+    pinsRgb[1].ChangeDutyCycle(conv(g))
+    pinsRgb[2].ChangeDutyCycle(conv(b))
 
-    motore1_indietro(100)
-    motore2_avanti(100)
-    motore3_indietro(100)
-    motore4_avanti(100)
-    time.sleep(1)
-
-
-def accendi_fr_destra_work():
+def setup(shared):
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
-    while True:
-        GPIO.output(FR_DX, GPIO.HIGH)
-        time.sleep(1)
-        GPIO.output(FR_DX, GPIO.LOW)
-        time.sleep(1)
+    move_command = shared.get("move_command")
+    high_lights = shared.get("high_lights")
+    signal_turn_left = shared.get("signal_turn_left")
+    signal_turn_right = shared.get("signal_turn_right")
+    rgb_lights = shared.get("rgb_lights")
 
+    all_pins = [AIN1, AIN2, AIN3, AIN4, AENA, AENB, BIN1, BIN2, BIN3, BIN4, BENA, BENB, LSTOP, LRETR, FR_DX, FR_SX,
+                RBG_RED, RBG_GREEN, RBG_BLUE, LABB]
 
-def spegni_fr_destra():
-    global freccia_dx_is_working
-
-    setup_pins([FR_DX])
-    if freccia_dx_is_working is not None and freccia_dx_is_working.is_alive():
-        freccia_dx_is_working.terminate()
-        freccia_dx_is_working.join()
-
-    GPIO.output(FR_DX, GPIO.LOW)
-    freccia_dx_is_working = None
-
-
-def accendi_fr_sinistra_work():
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setwarnings(False)
-    while True:
-        GPIO.output(FR_SX, GPIO.HIGH)
-        time.sleep(1)
-        GPIO.output(FR_SX, GPIO.LOW)
-        time.sleep(1)
-
-
-def spegni_fr_sinistra():
-    global freccia_sx_is_working
-
-    setup_pins([FR_SX])
-    if freccia_sx_is_working is not None and freccia_sx_is_working.is_alive():
-        freccia_sx_is_working.terminate()
-        freccia_sx_is_working.join()
-
-    GPIO.output(FR_SX, GPIO.LOW)
-    freccia_sx_is_working = None
-
-def safe_exit(signum, frame):
-    print("Processo cammina interrotto, rilascio GPIO")
-    ferma_tutto()  # Spegne i motori e luci
-    GPIO.cleanup()
-    sys.exit(0)
-
-def cammina(speed = 100):
-    print("[cammina] Avvio processo.")
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setwarnings(False)
-
-    all_motor_pins = [AIN1, AIN2, AIN3, AIN4, BIN1, BIN2, BIN3, BIN4, AENA, AENB, BENA, BENB]
-
-    for pin in all_motor_pins:
+    for pin in all_pins:
         GPIO.setup(pin, GPIO.OUT)
         GPIO.output(pin, GPIO.LOW)
+
+    accendi_luci_stop()
+    spegni_luci_retr()
+
+    def safe_exit(signum, frame):
+        print("[setup] Interrotto da SIGTERM. Cleanup...")
+        GPIO.cleanup(all_pins)
+        sys.exit(0)
+    signal.signal(signal.SIGTERM, safe_exit)
 
     pwmA = GPIO.PWM(AENA, 1000)
     pwmB = GPIO.PWM(AENB, 1000)
@@ -257,44 +233,57 @@ def cammina(speed = 100):
     pwmB.start(0)
     pwmC.start(0)
     pwmD.start(0)
+    timed_switch_directions = TimedSwitch(1000)
+    directions_indicators = False
 
-    def safe_exit(signum, frame):
-        print("[cammina] Interrotto da SIGTERM. Cleanup...")
-        pwmA.stop()
-        pwmB.stop()
-        pwmC.stop()
-        pwmD.stop()
-        GPIO.cleanup(all_motor_pins)
-        sys.exit(0)
+    pwmRed = GPIO.PWM(RBG_RED, 1000)
+    pwmGreen = GPIO.PWM(RBG_GREEN, 1000)
+    pwmBlue = GPIO.PWM(RBG_BLUE, 1000)
+    pinsRgb = {0: pwmRed, 1: pwmGreen, 2: pwmBlue}
+    pinsRgb[0].start(0)
+    pinsRgb[1].start(0)
+    pinsRgb[2].start(0)
 
-    signal.signal(signal.SIGTERM, safe_exit)
 
-    motore1_avanti(speed, pwmA)
-    motore2_avanti(speed, pwmB)
-    motore3_avanti(speed, pwmC)
-    motore4_avanti(speed, pwmD)
+    set_color(rgb_lights[0], rgb_lights[1], rgb_lights[2], pinsRgb)
 
     try:
         while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        safe_exit(None, None)
+            if move_command != shared.get("move_command"):
+                move_command = shared.get("move_command")
+                handle_move_command(move_command, pwmA, pwmB, pwmC, pwmD)
 
-def retromarcia(speed = 100):
-    setup_pins([AIN1, AIN2, AIN3, AIN4, AENA, AENB, BIN1, BIN2, BIN3, BIN4, BENA, BENB])
-    pwmA = GPIO.PWM(AENA, 1000)  # Frequenza di 1 kHz
-    pwmB = GPIO.PWM(AENB, 1000)
-    pwmC = GPIO.PWM(BENA, 1000)
-    pwmD = GPIO.PWM(BENB, 1000)
-    signal.signal(signal.SIGTERM, safe_exit)
+            #Aggiornamento valori abbaglianti
+            if high_lights != shared.get("high_lights"):
+                high_lights = shared.get("high_lights")
+                if high_lights:
+                    accendi_abbaglianti()
+                else:
+                    spegni_abbaglianti()
 
-    motore1_indietro(speed, pwmA)
-    motore2_indietro(speed, pwmB)
-    motore3_indietro(speed, pwmC)
-    motore4_indietro(speed, pwmD)
+            #Aggiornamento valori indicatori di posizione
+            if signal_turn_left != shared.get("signal_turn_left"):
+                signal_turn_left = shared.get("signal_turn_left")
 
-    try:
-        while True:
-            time.sleep(1)
+            if signal_turn_right != shared.get("signal_turn_right"):
+                signal_turn_right = shared.get("signal_turn_right")
+
+            #Gestione indicatori di direzione
+            if signal_turn_right or signal_turn_left:
+                if timed_switch_directions.is_elapse():
+                    directions_indicators = not directions_indicators
+                    if signal_turn_left:
+                        handle_turn_indicators(True, directions_indicators)
+                    if signal_turn_right:
+                        handle_turn_indicators(False, directions_indicators)
+            else:
+                timed_switch_directions.reset()
+
+            #Gestione luci anteriori
+            if rgb_lights[0] != shared.get("rgb_lights")[0] or rgb_lights[1] != shared.get("rgb_lights")[1] or rgb_lights[2] != shared.get("rgb_lights")[2]:
+                rgb_lights = shared.get("rgb_lights")
+                set_color(rgb_lights[0], rgb_lights[1], rgb_lights[2], pinsRgb)
+
+            time.sleep(0.1)
     except KeyboardInterrupt:
         safe_exit(None, None)
