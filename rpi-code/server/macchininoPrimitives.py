@@ -264,9 +264,14 @@ def setup(shared):
             #Aggiornamento valori indicatori di posizione
             if signal_turn_left != shared.get("signal_turn_left"):
                 signal_turn_left = shared.get("signal_turn_left")
+                if not signal_turn_left:
+                    spegni_fr_sinistra()
 
             if signal_turn_right != shared.get("signal_turn_right"):
                 signal_turn_right = shared.get("signal_turn_right")
+                if not signal_turn_right:
+                    spegni_fr_destra()
+
 
             #Gestione indicatori di direzione
             if signal_turn_right or signal_turn_left:
