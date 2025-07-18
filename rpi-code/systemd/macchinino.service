@@ -1,9 +1,10 @@
 [Unit]
-Description=Python Macchinino Server!
-After=network.target
+Description=Project Macchinino
+After=bluetooth.service
+Requires=bluetooth.service
 
 [Service]
-ExecStart=/bin/bash -c 'sudo sdptool add SP && /usr/bin/python3 /home/romanellas/server.py'
+ExecStart=/bin/bash -c 'sdptool add SP && /usr/bin/python3 /home/macchinino/server.py'
 Restart=on-failure
 User=root
 
